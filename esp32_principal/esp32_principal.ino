@@ -1,4 +1,4 @@
-// Sentinela — ESP32 principal. Sensor PIR + buzzer ativo + LCD I2C.
+// RASTRO — ESP32 principal. Sensor PIR + buzzer ativo + LCD I2C.
 #include <WiFi.h>
 #include <WebServer.h>
 #include <Wire.h>
@@ -91,7 +91,16 @@ void setup() {
   digitalWrite(PIN_BUZZER,LOW);
   lcd.init(); lcd.backlight(); lcd.print("Conectando WiFi");
   sessao=String(esp_random(),HEX)+String(esp_random(),HEX);
-  WiFi.mode(WIFI_STA); WiFi.setAutoReconnect(true); WiFi.begin(WIFI_SSID,WIFI_PASS);
+  WiFi.mode(WIFI_STA); WiFi.setAutoReconnect(true);
+  // Diagnostico: lista as redes que a placa enxerga (so 2.4 GHz)
+  int redes=WiFi.scanNetworks();
+  Serial.printf("\nRASTRO: %d redes Wi-Fi encontradas\n",redes);
+  for(int i=0;i<redes;i++) Serial.printf("  %-32s %4d dBm\n",WiFi.SSID(i).c_str(),WiFi.RSSI(i));
+  WiFi.onEvent([](WiFiEvent_t e, WiFiEventInfo_t info){
+    Serial.printf("Wi-Fi caiu, motivo %d\n", info.wifi_sta_disconnected.reason);  // 15/202 = senha errada, 201 = rede nao encontrada
+  }, ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
+  Serial.printf("Conectando em \"%s\"...\n",WIFI_SSID);
+  WiFi.begin(WIFI_SSID,WIFI_PASS);
   configTime(-3*3600,0,"pool.ntp.org");
   server.on("/",HTTP_GET,[](){
     String p=FPSTR(PAGINA); p.replace("__CAM__",CAM_IP);
@@ -102,9 +111,6 @@ void setup() {
   server.on("/cmd",HTTP_POST,comando);
   server.onNotFound([](){responder(404,"{\"erro\":\"Nao encontrado\"}");});
   server.begin(); registrar("inicio");
-  uint32_t t0=millis();
-  while(WiFi.status()!=WL_CONNECTED&&millis()-t0<15000) delay(250);
-  Serial.print("Painel RASTRO: http://"); Serial.println(WiFi.localIP());
 }
 void loop() {
   server.handleClient(); uint32_t agora=millis();
@@ -117,8 +123,16 @@ void loop() {
   anterior=ativo; movimento=ativo;
   if(sirene&&uint32_t(agora-inicioSirene)>=TEMPO_SIRENE) {sirene=false; registrar("sirene_off");}
   digitalWrite(PIN_BUZZER,sirene?HIGH:LOW);
-  if(WiFi.status()!=WL_CONNECTED&&uint32_t(agora-ultimaReconexao)>15000) {
-    ultimaReconexao=agora; WiFi.reconnect();
+  static bool avisouIP=false;
+  if(WiFi.status()==WL_CONNECTED) {
+    if(!avisouIP) { avisouIP=true; Serial.print("Painel RASTRO: http://"); Serial.println(WiFi.localIP()); }
+  } else {
+    avisouIP=false;
+    if(uint32_t(agora-ultimaReconexao)>15000) {
+      ultimaReconexao=agora;
+      Serial.printf("Wi-Fi sem conexao (status %d), tentando de novo...\n",WiFi.status());
+      WiFi.disconnect(); WiFi.begin(WIFI_SSID,WIFI_PASS);
+    }
   }
   static uint32_t lcdAnterior=0;
   if(uint32_t(agora-lcdAnterior)>1000) {
