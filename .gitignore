@@ -1,0 +1,4 @@
+config.h
+*.bin
+build/
+.DS_Store
