@@ -1,0 +1,132 @@
+// Sentinela — ESP32 principal. Sensor PIR + buzzer ativo + LCD I2C.
+#include <WiFi.h>
+#include <WebServer.h>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <time.h>
+#include <esp_system.h>
+#include "pagina.h"
+#include "config.h"  // WIFI_SSID, WIFI_PASS e CAM_IP (arquivo fora do Git)
+String CAM_IP = CAM_IP_PADRAO;
+
+const int PIN_PIR    = 14;
+const int PIN_BUZZER = 15;
+// LCD I2C: SDA = 21, SCL = 22 (padrão). Endereço 0x27 ou 0x3F.
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+// =========================
+
+
+WebServer server(80);
+bool armado=true, sirene=false, movimento=false, anterior=false;
+bool automatico=true;
+uint32_t inicioSirene=0, ultimaReconexao=0;
+const uint32_t TEMPO_SIRENE=15000, AQUECIMENTO=30000;
+const size_t LIMITE=100;
+struct Evento { uint32_t id, uptime; char data[32]; const char* tipo; };
+Evento eventos[LIMITE];
+size_t quantidade=0, proximo=0;
+uint32_t sequencia=0, totalMovimentos=0;
+String sessao, ultimo="—";
+
+String dataAgora() {
+  time_t agora=time(nullptr);
+  if (agora<1700000000) return "Sem horario sincronizado";
+  struct tm t; localtime_r(&agora,&t);
+  char buf[24]; strftime(buf,sizeof(buf),"%Y-%m-%d %H:%M:%S",&t);
+  return String(buf);
+}
+void registrar(const char* tipo) {
+  Evento &e=eventos[proximo];
+  e.id=++sequencia; e.uptime=millis(); e.tipo=tipo;
+  dataAgora().toCharArray(e.data,sizeof(e.data));
+  proximo=(proximo+1)%LIMITE;
+  if(quantidade<LIMITE) quantidade++;
+  if(String(tipo)=="movimento") { totalMovimentos++; ultimo=e.data; }
+}
+void responder(int codigo,const String &json) {
+  server.sendHeader("Cache-Control","no-store");
+  server.send(codigo,"application/json; charset=utf-8",json);
+}
+void status() {
+  String j; j.reserve(512);
+  j="{\"sessao\":\""+sessao+"\",\"hora\":\""+dataAgora()+"\",\"ultimo\":\""+ultimo+"\"";
+  j+=",\"armado\":"+String(armado?"true":"false");
+  j+=",\"sirene\":"+String(sirene?"true":"false");
+  j+=",\"automatico\":"+String(automatico?"true":"false");
+  j+=",\"movimento\":"+String(movimento?"true":"false");
+  j+=",\"aquecendo\":"+String(millis()<AQUECIMENTO?"true":"false");
+  j+=",\"uptime\":"+String(millis())+",\"total\":"+String(totalMovimentos);
+  j+=",\"rssi\":"+String(WiFi.RSSI())+",\"heap\":"+String(ESP.getFreeHeap())+"}";
+  responder(200,j);
+}
+void historico() {
+  String j; j.reserve(16000); j="{\"sessao\":\""+sessao+"\",\"eventos\":[";
+  for(size_t i=0;i<quantidade;i++) {
+    const Evento &e=eventos[(proximo+LIMITE-quantidade+i)%LIMITE];
+    if(i) j+=",";
+    j+="{\"id\":"+String(e.id)+",\"uptime\":"+String(e.uptime)+",\"data\":\""+String(e.data)+"\",\"tipo\":\""+e.tipo+"\"}";
+  }
+  responder(200,j+"]}");
+}
+void comando() {
+  String c=server.arg("c"),v=server.arg("v");
+  if((v!="0"&&v!="1")||(c!="arm"&&c!="sirene"&&c!="automatico")) {
+    responder(400,"{\"erro\":\"Comando invalido\"}"); return;
+  }
+  bool ligado=v=="1";
+  if(c=="arm"&&armado!=ligado) {
+    armado=ligado;
+    if(!armado) { sirene=false; movimento=false; }
+    registrar(armado?"armado":"desarmado");
+  } else if(c=="sirene"&&sirene!=ligado) {
+    sirene=ligado; inicioSirene=millis(); registrar(sirene?"sirene_on":"sirene_off");
+  } else if(c=="automatico"&&automatico!=ligado) {
+    automatico=ligado; registrar(automatico?"auto_on":"auto_off");
+  }
+  digitalWrite(PIN_BUZZER,sirene?HIGH:LOW);
+  status();
+}
+void setup() {
+  Serial.begin(115200); pinMode(PIN_PIR,INPUT); pinMode(PIN_BUZZER,OUTPUT);
+  digitalWrite(PIN_BUZZER,LOW);
+  lcd.init(); lcd.backlight(); lcd.print("Conectando WiFi");
+  sessao=String(esp_random(),HEX)+String(esp_random(),HEX);
+  WiFi.mode(WIFI_STA); WiFi.setAutoReconnect(true); WiFi.begin(WIFI_SSID,WIFI_PASS);
+  configTime(-3*3600,0,"pool.ntp.org");
+  server.on("/",HTTP_GET,[](){
+    String p=FPSTR(PAGINA); p.replace("__CAM__",CAM_IP);
+    server.send(200,"text/html; charset=utf-8",p);
+  });
+  server.on("/status",HTTP_GET,status);
+  server.on("/eventos",HTTP_GET,historico);
+  server.on("/cmd",HTTP_POST,comando);
+  server.onNotFound([](){responder(404,"{\"erro\":\"Nao encontrado\"}");});
+  server.begin(); registrar("inicio");
+  uint32_t t0=millis();
+  while(WiFi.status()!=WL_CONNECTED&&millis()-t0<15000) delay(250);
+  Serial.print("Painel RASTRO: http://"); Serial.println(WiFi.localIP());
+}
+void loop() {
+  server.handleClient(); uint32_t agora=millis();
+  bool leitura=digitalRead(PIN_PIR)==HIGH;
+  bool ativo=leitura&&armado&&agora>=AQUECIMENTO;
+  if(ativo&&!anterior) {
+    registrar("movimento");
+    if(automatico) {sirene=true; inicioSirene=agora;}
+  }
+  anterior=ativo; movimento=ativo;
+  if(sirene&&uint32_t(agora-inicioSirene)>=TEMPO_SIRENE) {sirene=false; registrar("sirene_off");}
+  digitalWrite(PIN_BUZZER,sirene?HIGH:LOW);
+  if(WiFi.status()!=WL_CONNECTED&&uint32_t(agora-ultimaReconexao)>15000) {
+    ultimaReconexao=agora; WiFi.reconnect();
+  }
+  static uint32_t lcdAnterior=0;
+  if(uint32_t(agora-lcdAnterior)>1000) {
+    lcdAnterior=agora;
+    String linha=agora<AQUECIMENTO?"Calibrando PIR":(movimento?"MOVIMENTO!":(armado?"Sistema armado":"Desarmado"));
+    lcd.setCursor(0,0); lcd.print(linha+String("                ").substring(linha.length()));
+    String ip=WiFi.status()==WL_CONNECTED?WiFi.localIP().toString():"Sem WiFi";
+    lcd.setCursor(0,1); lcd.print(ip+String("                ").substring(ip.length()));
+  }
+  delay(2);
+}
