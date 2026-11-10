@@ -53,6 +53,10 @@ A referência artística é *Under Scan* (2005), de Rafael Lozano-Hemmer, obra e
 
 O ESP32 principal e a ESP32-CAM não têm fios entre si: comunicam-se só pela rede Wi-Fi. A montagem também pode ser aberta no simulador Wokwi com o arquivo [`docs/wokwi/diagram.json`](docs/wokwi/).
 
+## Gabinete para impressão 3D
+
+A pasta [`gabinete/`](gabinete/) tem uma caixa de parede ou de mesa com um olho na frente: a cúpula do PIR é a pupila, a lente da câmera fica acima e o LCD embaixo. Inclui o modelo paramétrico em OpenSCAD e um script em Python que gera os arquivos STL.
+
 ## Estrutura do repositório
 
 ```
@@ -65,6 +69,9 @@ CameraWebServer/
   app_httpd.cpp         servidor de vídeo (/stream) e foto (/capture)
   board_config.h        modelo da câmera (AI-Thinker)
   config.exemplo.h      modelo de configuração de Wi-Fi
+gabinete/
+  rastro_gabinete.scad  gabinete paramétrico (OpenSCAD)
+  build_case.py         gera os STL da caixa e da tampa
 docs/
   esquematico.svg       esquemático simplificado
   wokwi/diagram.json    montagem para o simulador Wokwi
@@ -135,6 +142,7 @@ O RASTRO fala de vigilância e, nesta versão, também filma. Por isso definimos
 - Gravar fotos no cartão microSD da ESP32-CAM, sem depender do navegador aberto.
 - Histórico persistente (LittleFS ou servidor local) e gráfico de movimentos por hora.
 - QR code impresso na instalação para o público abrir o painel.
+- Trocar a protoboard por uma placa perfurada soldada, mais resistente para transporte.
 
 ## Referências
 
