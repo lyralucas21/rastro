@@ -28,6 +28,40 @@ size_t quantidade=0, proximo=0;
 uint32_t sequencia=0, totalMovimentos=0;
 String sessao, ultimo="—";
 
+// Procura a ESP32-CAM na rede: testa o IP configurado e depois um IP por vez
+// da mesma sub-rede, ate achar quem responda /status como o CameraWebServer.
+bool camEncontrada=false; uint8_t camBusca=1; uint32_t ultimaBusca=0;
+bool ehCamera(IPAddress ip) {
+  WiFiClient c;
+  if(!c.connect(ip,80,120)) return false;
+  c.print("GET /status HTTP/1.0\r\nHost: cam\r\n\r\n");
+  uint32_t t=millis(); String r;
+  while(millis()-t<400&&r.length()<800) {
+    while(c.available()) r+=(char)c.read();
+    if(!c.connected()&&!c.available()) break;
+    delay(1);
+  }
+  c.stop();
+  return r.indexOf("framesize")>=0;
+}
+void procurarCamera() {
+  if(camEncontrada||WiFi.status()!=WL_CONNECTED||millis()-ultimaBusca<50) return;
+  ultimaBusca=millis();
+  static bool testouPadrao=false;
+  IPAddress ip;
+  if(!testouPadrao) { testouPadrao=true; if(!ip.fromString(CAM_IP)) return; }
+  else {
+    ip=WiFi.localIP();
+    if(camBusca==0||camBusca==255) camBusca=1;
+    ip[3]=camBusca++;
+    if(ip==WiFi.localIP()) return;
+  }
+  if(ehCamera(ip)) {
+    camEncontrada=true; CAM_IP=ip.toString();
+    Serial.println("ESP32-CAM encontrada: http://"+CAM_IP);
+  }
+}
+
 String dataAgora() {
   time_t agora=time(nullptr);
   if (agora<1700000000) return "Sem horario sincronizado";
@@ -56,6 +90,7 @@ void status() {
   j+=",\"movimento\":"+String(movimento?"true":"false");
   j+=",\"aquecendo\":"+String(millis()<AQUECIMENTO?"true":"false");
   j+=",\"uptime\":"+String(millis())+",\"total\":"+String(totalMovimentos);
+  j+=",\"cam\":\""+CAM_IP+"\"";
   j+=",\"rssi\":"+String(WiFi.RSSI())+",\"heap\":"+String(ESP.getFreeHeap())+"}";
   responder(200,j);
 }
@@ -114,6 +149,7 @@ void setup() {
 }
 void loop() {
   server.handleClient(); uint32_t agora=millis();
+  procurarCamera();
   bool leitura=digitalRead(PIN_PIR)==HIGH;
   bool ativo=leitura&&armado&&agora>=AQUECIMENTO;
   if(ativo&&!anterior) {
