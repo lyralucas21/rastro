@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 520" font-family="Inter, Arial, sans-serif" font-size="12">
+  <defs>
+    <style>
+      .box{fill:#fff;stroke:#1d1d1f;stroke-width:1.6}
+      .mcu{fill:#111216;stroke:#111216}
+      .t{fill:#1d1d1f;font-weight:600;font-size:13px}
+      .s{fill:#6b6860;font-size:10.5px}
+      .p{fill:#1d1d1f;font-size:10.5px;font-family:'DejaVu Sans Mono',monospace}
+      .pw{fill:#f4f1ea;font-size:10.5px;font-family:'DejaVu Sans Mono',monospace}
+      .w{fill:none;stroke-width:2.4;stroke-linejoin:round}
+      .v5{stroke:#d62828}.gnd{stroke:#1d1d1f}.pir{stroke:#e0a100}.sda{stroke:#2a9d4b}.scl{stroke:#7b3fb3}.bz{stroke:#f07f13}
+      .wifi{fill:none;stroke:#9a968c;stroke-width:1.5;stroke-dasharray:5 4}
+      .dot{stroke:none}
+    </style>
+  </defs>
+
+  <!-- Wi-Fi -->
+  <rect x="330" y="18" width="140" height="34" rx="17" fill="#f4f1ea" stroke="#9a968c"/>
+  <text x="400" y="39" text-anchor="middle" class="t" style="font-size:12px">Rede Wi-Fi local</text>
+  <rect class="box" x="40" y="14" width="200" height="56" rx="6"/>
+  <text x="56" y="36" class="t">ESP32-CAM AI-Thinker</text>
+  <text x="56" y="54" class="s">fonte 5 V própria (≥ 2 A) · só Wi-Fi</text>
+  <rect class="box" x="600" y="14" width="200" height="56" rx="6"/>
+  <text x="616" y="36" class="t">Celular ou PC</text>
+  <text x="616" y="54" class="s">painel em http://IP-do-LCD</text>
+  <path class="wifi" d="M240 42H330"/><path class="wifi" d="M470 35H600"/><path class="wifi" d="M400 52V110"/>
+  <text x="248" y="34" class="s">vídeo · foto</text>
+  <text x="478" y="28" class="s">HTTP</text>
+
+  <!-- ESP32 -->
+  <rect class="mcu" x="320" y="110" width="160" height="210" rx="8"/>
+  <text x="400" y="200" text-anchor="middle" fill="#f4f1ea" font-weight="800" font-size="18">ESP32</text>
+  <text x="400" y="218" text-anchor="middle" fill="#9a968c" font-size="10.5">DevKit (principal)</text>
+  <text x="328" y="144" class="pw">GPIO14</text>
+  <text x="472" y="134" class="pw" text-anchor="end">GPIO21 SDA</text>
+  <text x="472" y="159" class="pw" text-anchor="end">GPIO22 SCL</text>
+  <text x="472" y="274" class="pw" text-anchor="end">GPIO15</text>
+  <text x="360" y="312" class="pw" text-anchor="middle">VIN</text>
+  <text x="440" y="312" class="pw" text-anchor="middle">GND</text>
+
+  <!-- PIR -->
+  <rect class="box" x="40" y="118" width="150" height="100" rx="6"/>
+  <text x="54" y="140" class="t">Sensor PIR</text>
+  <text x="54" y="156" class="s">HC-SR501</text>
+  <text x="182" y="144" class="p" text-anchor="end">OUT</text>
+  <text x="182" y="174" class="p" text-anchor="end">VCC</text>
+  <text x="182" y="204" class="p" text-anchor="end">GND</text>
+
+  <!-- LCD -->
+  <rect class="box" x="600" y="110" width="180" height="96" rx="6"/>
+  <rect x="648" y="120" width="84" height="30" rx="3" fill="#9fc23a" stroke="#5c7a12"/>
+  <text x="690" y="180" class="t" text-anchor="middle">LCD 16x2 I2C</text>
+  <text x="690" y="196" class="s" text-anchor="middle">endereço 0x27</text>
+  <text x="608" y="134" class="p">SDA</text>
+  <text x="608" y="159" class="p">SCL</text>
+  <text x="772" y="144" class="p" text-anchor="end">VCC</text>
+  <text x="772" y="169" class="p" text-anchor="end">GND</text>
+
+  <!-- Buzzer -->
+  <rect class="box" x="600" y="244" width="140" height="76" rx="6"/>
+  <circle cx="716" cy="282" r="15" fill="#111216"/><circle cx="716" cy="282" r="4" fill="#f4f1ea"/>
+  <text x="612" y="300" class="t">Buzzer ativo</text>
+  <text x="608" y="274" class="p">+</text>
+
+  <!-- Fonte -->
+  <rect class="box" x="40" y="400" width="130" height="70" rx="6"/>
+  <text x="54" y="424" class="t">Fonte 5 V</text>
+  <text x="54" y="440" class="s">USB / carregador</text>
+  <text x="162" y="424" class="p" text-anchor="end">+</text>
+  <text x="162" y="458" class="p" text-anchor="end">−</text>
+
+  <!-- trilhos -->
+  <path class="w v5" d="M170 420H850"/>
+  <path class="w gnd" d="M170 454H850"/>
+  <text x="560" y="414" class="s">trilho 5 V</text>
+  <text x="560" y="470" class="s">trilho GND</text>
+
+  <!-- sinais -->
+  <path class="w pir" d="M190 140H320"/>
+  <path class="w sda" d="M480 130H600"/>
+  <path class="w scl" d="M480 155H600"/>
+  <path class="w bz" d="M480 270H600"/>
+
+  <!-- alimentacao PIR -->
+  <path class="w v5" d="M190 170H250V420"/>
+  <path class="w gnd" d="M190 200H225V454"/>
+  <!-- ESP32 -->
+  <path class="w v5" d="M360 320V420"/>
+  <path class="w gnd" d="M440 320V454"/>
+  <!-- LCD -->
+  <path class="w v5" d="M780 140H840V420"/>
+  <path class="w gnd" d="M780 165H818V454"/>
+  <!-- Buzzer -->
+  <path class="w gnd" d="M740 300H790V454"/>
+  <text x="736" y="304" class="p" text-anchor="end">−</text>
+
+  <!-- juncoes -->
+  <g class="dot">
+    <circle cx="250" cy="420" r="4" fill="#d62828"/><circle cx="360" cy="420" r="4" fill="#d62828"/><circle cx="840" cy="420" r="4" fill="#d62828"/>
+    <circle cx="225" cy="454" r="4" fill="#1d1d1f"/><circle cx="440" cy="454" r="4" fill="#1d1d1f"/><circle cx="818" cy="454" r="4" fill="#1d1d1f"/><circle cx="790" cy="454" r="4" fill="#1d1d1f"/>
+  </g>
+
+  <!-- legenda -->
+  <g transform="translate(40,494)" class="s">
+    <rect x="0" y="-8" width="14" height="4" fill="#d62828"/><text x="20" y="-2">5 V</text>
+    <rect x="60" y="-8" width="14" height="4" fill="#1d1d1f"/><text x="80" y="-2">GND</text>
+    <rect x="125" y="-8" width="14" height="4" fill="#e0a100"/><text x="145" y="-2">sinal PIR</text>
+    <rect x="215" y="-8" width="14" height="4" fill="#2a9d4b"/><text x="235" y="-2">SDA</text>
+    <rect x="275" y="-8" width="14" height="4" fill="#7b3fb3"/><text x="295" y="-2">SCL</text>
+    <rect x="335" y="-8" width="14" height="4" fill="#f07f13"/><text x="355" y="-2">buzzer</text>
+    <rect x="415" y="-8" width="14" height="2" fill="#9a968c"/><text x="435" y="-2">Wi-Fi (sem fio)</text>
+  </g>
+</svg>
