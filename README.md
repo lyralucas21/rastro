@@ -47,6 +47,12 @@ A referência artística é *Under Scan* (2005), de Rafael Lozano-Hemmer, obra e
 
 **Cores dos fios:** vermelho = 5 V · preto = GND · amarelo = sinal do PIR · verde/roxo = SDA/SCL · laranja = buzzer.
 
+## Esquemático
+
+![Esquemático simplificado do RASTRO](docs/esquematico.svg)
+
+O ESP32 principal e a ESP32-CAM não têm fios entre si: comunicam-se só pela rede Wi-Fi. A montagem também pode ser aberta no simulador Wokwi com o arquivo [`docs/wokwi/diagram.json`](docs/wokwi/).
+
 ## Estrutura do repositório
 
 ```
@@ -59,6 +65,9 @@ CameraWebServer/
   app_httpd.cpp         servidor de vídeo (/stream) e foto (/capture)
   board_config.h        modelo da câmera (AI-Thinker)
   config.exemplo.h      modelo de configuração de Wi-Fi
+docs/
+  esquematico.svg       esquemático simplificado
+  wokwi/diagram.json    montagem para o simulador Wokwi
 ```
 
 ## Como montar e rodar
@@ -86,7 +95,7 @@ Para ver a interface sem a placa, abra a página com `?demo` no fim do endereço
 
 ## O painel web
 
-- Estado da proteção (armado/desarmado), do sensor e contagem de movimentos.
+- Estado da vigilância (ligada/pausada), do sensor e contagem de passagens.
 - Vídeo ao vivo da ESP32-CAM e foto automática a cada novo movimento, mais o botão de foto manual.
 - Sirene manual (15 s) e opção de disparo automático ao detectar.
 - Histórico dos últimos 100 eventos com busca, filtros e exportação em CSV.
