@@ -1,0 +1,49 @@
+ETAPA 2 - HISTORICO APOS REINICIAR
+
+Os ultimos 100 eventos ficam na memoria interna da ESP32 principal (NVS).
+Cada evento e salvo separadamente em um registro de 64 bytes, com versao e CRC.
+Novos registros substituem os mais antigos quando o limite de 100 e atingido.
+Os contadores acumulados e a numeracao continuam apos reiniciar; nao contam pessoas.
+
+Uma ocorrencia aberta recuperada apos desligar/reiniciar fica encerrada por reinicio.
+Ela conserva o inicio, ultimo movimento e numero de deteccoes do ultimo salvamento.
+A nova inicializacao nao junta movimentos com uma ocorrencia de antes do reinicio.
+
+Criacao e encerramento: gravacao agrupada em ate aproximadamente 2 segundos,
+quando o programa esta executando normalmente. Ocorrencia ainda ativa: atualizacao
+periodica a cada 30 segundos. Se faltar energia, alteracoes posteriores ao ultimo
+salvamento podem se perder. Nao ha gravacao continua de fotos na memoria da placa.
+O painel informa quando existem alteracoes aguardando salvamento ou falha de memoria.
+Falhas de leitura/gravação nao apagam automaticamente a memoria nem impedem o PIR.
+
+Os horarios nao sincronizados de uma sessao antiga permanecem indicados como tais;
+o tempo ligado da nova sessao nao e usado para inventar um horario antigo.
+Fotos continuam salvas no navegador e no endereco usados originalmente. Cada evento
+preserva a identificacao da sessao de origem, mantendo sua associacao com as fotos.
+Fotos automaticas ainda exigem a pagina aberta e visivel.
+
+INSTALACAO
+Gravar apenas esp32_principal/esp32_principal.ino, com todos os arquivos da pasta.
+ESP32 Dev Module; Huge APP; PSRAM Disabled. Nao alterar a camera nesta etapa.
+Nao usar Erase All Flash para uma atualizacao comum: isso remove o historico da NVS.
+O arquivo historico_inicial.h traz a migracao unica dos 55 registros exportados antes
+desta instalacao. O marcador importado impede reaplicar essa copia a cada reinicio.
+Uma limpeza total da flash remove tambem o marcador e reaplica essa copia inicial
+se este mesmo firmware continuar sendo usado. Para outra placa/projeto, remover ou
+substituir a copia inicial antes de compilar.
+
+O JSON anterior a atualizacao esta em outputs/historico-antes-etapa2.json.
+A copia integral do programa anterior esta em esp32-principal-antes-etapa2-4MB.bin.
+Nao gravar essa copia integral para uma atualizacao comum; ela e apenas um rollback.
+Configuracoes de armamento e sirene continuam seguindo o comportamento anterior;
+esta etapa persiste os eventos, nao cria novos modos de funcionamento.
+
+ATUALIZACAO POSTERIOR - ETAPA 3
+O modo de funcionamento e a pausa agora tambem ficam salvos na principal.
+Os eventos anteriores continuam usando o mesmo formato, com novos tipos para modos.
+
+AMPLIACAO INSTALADA EM 13/11/2026
+Historico e modo usam agora a particao NVS dedicada rastro_data (64 KB),
+no mesmo namespace rastro-h2. O limite continua 100 eventos. A NVS original
+foi preservada; a migracao e retomavel e foi testada com interrupcoes.
+Manter partitions.csv junto ao sketch. Veja RECUPERACAO-VIDEO-E-MEMORIA.txt.

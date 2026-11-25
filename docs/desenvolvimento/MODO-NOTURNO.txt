@@ -1,0 +1,66 @@
+MODO NOTURNO PROGRAMADO - 15/11/2026
+
+INSTALADO E ATIVADO NESTA PLACA
+Painel: http://192.168.0.135/ | Camera: http://192.168.0.133/
+Programacao diaria de 22:00 ate 07:00, usando o horario de Brasilia do
+relogio da ESP32. Recarregue o painel com Ctrl+F5 para ver os controles.
+Entre 22:00 (inclusive) e 07:00 (exclusive), usa Ausente: sirene de ate 8 s
+por nova ocorrencia. Fora desse intervalo, usa Monitoramento sem som.
+O usuario pode alterar os horarios e escolher Apresentacao para o dia.
+
+COMO FUNCIONA
+A verificacao de horario roda na ESP32 principal, aproximadamente uma vez
+por segundo. A troca de modo funciona com o navegador fechado. A pausa do
+registro e sempre respeitada: a programacao nao ativa um registro pausado.
+A troca de modo silencia o som atual; a proxima ocorrencia usa o novo modo.
+Trocar de modo manualmente mantem a escolha ate a proxima transicao de
+horario. Isso e preservado mesmo se a placa reiniciar durante o intervalo.
+Salvar a programacao reaplica os horarios e cancela o ajuste manual atual.
+Desativar a programacao interrompe as trocas e mantem o modo atual.
+Para ficar sem som imediatamente, selecione Monitoramento no controle de modo.
+
+RELOGIO, FOTOS E LUZ
+Sem horario sincronizado, a programacao mantem o modo atual e aguarda.
+Depois de sincronizar, o relogio continua funcionando se a rede cair, desde
+que a placa continue alimentada. Apos desligar a alimentacao, sera necessario
+sincronizar novamente. O painel informa quando esta aguardando o relogio.
+As fotos automaticas continuam exigindo o painel aberto e visivel, captura
+automatica ativada, camera acessivel e espaco disponivel neste navegador.
+O modo noturno programado nao acrescenta visao infravermelha a camera.
+
+SALVAMENTO E ATUALIZACAO
+Os horarios, a ativacao e o ajuste manual ficam na memoria da placa, com
+versao e verificacao de integridade. Em uma placa nova, a programacao fica
+desativada por padrao; os horarios sugeridos sao 22:00 e 07:00.
+Regravar normalmente esta placa preserva a configuracao salva. Mantenha os
+headers e partitions.csv junto ao sketch, ESP32 Dev Module, Huge APP e
+PSRAM Disabled na principal. Nao usar Erase All Flash.
+O banco de fotos e o formato do backup de albuns continuam os mesmos.
+
+VALIDACAO
+Testes executaram as funcoes e comandos extraidos do firmware real.
+Foram cobertos inicio/fim inclusivo/exclusivo, todos os minutos do dia,
+intervalo que cruza meia-noite, intervalo diurno, ajuste manual, expiracao,
+reinicio, falta de relogio, pausa, dados invalidos, CRC, falha de escrita e
+recuperacao. Os testes anteriores de painel, navegacao, albuns, backup,
+recuperacao de video, modos, perfil fluido, clock e envio HTTP continuam passando.
+No navegador, foram conferidos salvar, rejeitar horarios iguais, manter
+edicoes durante atualizacoes e avisar de alteracoes ainda nao salvas.
+controles-teste.jpg mostra o ambiente isolado de teste, nao a placa real.
+Na placa, foi aguardada a virada real de um horario temporario; a ESP32 trocou
+de Monitoramento para Ausente automaticamente, sem navegador. Um ajuste manual
+para Monitoramento foi respeitado. Em seguida foi restaurada
+a configuracao final de 22:00 a 07:00 e testada a rejeicao de horarios iguais.
+A configuracao foi conferida novamente apos reiniciar a placa, com relogio
+sincronizado, sensor calibrado e pagina recebida igual aos fontes.
+
+PRESERVACAO
+Copia integral da memoria de historico salva antes da gravacao.
+Antes de ativar a programacao foram conferidos 99 dos
+100 registros anteriores; 1 sairam pelo limite normal
+de 100 ao entrarem registros novos. A copia fisica conserva o estado anterior.
+Modo e pausa anteriores foram conferidos antes da ativacao. Depois de ativar,
+o modo passou a seguir a programacao. Estado final: monitoramento, registro
+ativo, historico saudavel e contadores sem reducao.
+Somente o programa da principal foi gravado. Particoes e historico nao foram
+apagados, e a camera nao foi regravada.

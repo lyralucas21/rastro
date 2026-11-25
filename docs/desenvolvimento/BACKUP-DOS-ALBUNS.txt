@@ -1,0 +1,52 @@
+BACKUP DOS REGISTROS E FOTOS - 13/11/2026
+
+USO
+1. Abra http://192.168.0.135/ no navegador onde estao as fotos.
+2. Pressione Ctrl+F5 para carregar o painel atualizado.
+3. Na secao Backup dos registros e fotos, clique Baixar backup.
+4. Guarde o arquivo rastro-backup-....json baixado.
+5. Para restaurar em outro navegador ou IP, abra o painel atualizado,
+   clique Restaurar backup, escolha o arquivo e confira a previa.
+6. Clique Restaurar para acrescentar as fotos e os registros.
+
+O arquivo guarda as fotos disponiveis, as sequencias, seus horarios e os
+registros exibidos pelo painel. Inclui tambem os registros arquivados por
+restauracoes anteriores. Exportar CSV continua disponivel para planilhas.
+As imagens sao JPEGs integrais, sem nova compressao durante o backup.
+
+COMPORTAMENTO
+A restauracao acontece no navegador. Os registros restaurados aparecem como
+arquivo no painel. O contador principal continua refletindo o que a placa
+informa; importar um arquivo nao cria novas deteccoes no sensor.
+O historico, o modo e a pausa gravados na ESP32 sao preservados.
+Uma imagem ja presente na mesma sequencia e horario nao e duplicada.
+Fotos iguais capturadas em horarios diferentes continuam sendo fotos distintas.
+Se uma sequencia ultrapassaria 5 fotos (1 para foto manual), ou o total
+ultrapassaria 300, a restauracao inteira e recusada, sem apagar o que existe.
+O arquivo aceita ate 128 MB e 10000 registros arquivados.
+
+A gravacao das fotos e registros importados usa uma unica transacao.
+Se faltar espaco ou ocorrer falha, a operacao e revertida e os dados anteriores
+continuam. Se outra aba alterar fotos enquanto o arquivo e conferido, o painel
+pode pedir uma nova tentativa para preservar essa alteracao.
+
+Os bancos anteriores de fotos sao atualizados sem apagar as imagens. Se o
+navegador avisar que outra aba bloqueou a atualizacao, feche as outras abas do
+painel e recarregue. Todas as abas devem usar o painel atualizado.
+
+LIMITES DE RECUPERACAO
+O backup exporta os dados acessiveis no navegador e endereco abertos. Nao
+procura automaticamente bancos de outros IPs nem fotos de outros navegadores.
+Use Baixar backup antes de trocar o IP ou limpar o armazenamento do navegador.
+A copia so existe depois de baixar o arquivo. Nao e uma copia automatica na ESP.
+
+VALIDACAO
+Testes de migracao das versoes anteriores, exportacao/restauracao de JPEGs,
+sequencias, recarga, importacao repetida, precedencia de eventos atuais,
+falha de espaco e reversao atomica em IndexedDB, arquivos invalidos e limites.
+Testes adicionais de concorrencia: fotos, registros e limite global alterados
+por outra aba entre a conferencia e a gravacao.
+No navegador de teste foram restauradas 3 fotos, abertas apos recarregar e
+exportadas de novo em arquivo real. As 3 fotos tambem foram preservadas apos
+a atualizacao do protocolo de armazenamento. Esses dados de teste ficaram
+somente no endereco local de validacao e nao foram importados no painel real.

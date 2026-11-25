@@ -1,0 +1,70 @@
+PAINEL RASTRO - MELHORIAS
+
+Instalacao: gravar somente esp32_principal/esp32_principal.ino no ESP32 principal.
+Placa no Arduino IDE: ESP32 Dev Module. Porta usada neste computador: COM5.
+Deixe EN do principal fora do GND e os fios TX/RX da camera desconectados.
+A camera pode continuar alimentada em 5V e GND, com IO0 fora do GND.
+Depois da gravacao, abra o IP do painel mostrado no Monitor Serial/LCD.
+Recarregue a pagina para carregar os novos controles.
+
+O firmware de transmissao da camera tambem foi atualizado em 13/11/2026.
+O painel usa as rotas /status, /control, /capture e :81/stream ja existentes.
+
+Novidades:
+- Mais nitido: JPEG 14. Mais fluido: JPEG 40. Resolucao preservada (320 x 240).
+- A escolha fica guardada neste navegador e e reaplicada quando o video conecta.
+- A qualidade e uma configuracao da camera e afeta todos os espectadores.
+- Pausar/retomar video sem parar a deteccao do sensor nem as fotos automaticas.
+- Tela cheia com opcao de sair; modo ampliado quando o navegador nao suporta tela cheia.
+- Reconexao automatica quando nao chegam quadros novos por 10 segundos.
+- Apos duas falhas, fotos em sequencia permitem continuar vendo a camera.
+  Esse modo e mais lento. Reconectar camera tenta o video novamente.
+- Video suspenso ao sair da aba, retomado ao voltar.
+- Captura reutiliza o quadro recente do video; sem quadro recente, pede uma foto separada.
+- Miniaturas no historico; fotos manuais permanecem durante as atualizacoes.
+- Historico transferido somente quando muda, com compatibilidade com a versao antiga.
+
+As fotos antigas continuam no armazenamento do navegador original, no mesmo endereco.
+Melhor iluminacao e enquadramento ajudam a nitidez; aumentar a resolucao exige testar
+outras configuracoes e nao faz parte desta atualizacao de fluidez.
+
+ATUALIZACAO DE FLUIDEZ - 13/11/2026
+A camera foi atualizada para dois buffers em PSRAM. Veja FLUIDEZ-PSRAM.txt.
+O programa da principal e os albuns foram preservados. Fotos recentes do video
+sao reaproveitadas nas capturas, sem interromper a transmissao.
+
+ETAPA 3 - MODOS
+O seletor de modos substitui a antiga opcao de disparar sirene automaticamente.
+Modo e pausa ficam salvos para o proximo reinicio. Consulte ETAPA-3-MODOS.txt.
+
+PERFIL DE CONTINUIDADE
+Mais fluido e o padrao para novos navegadores: comprime mais a imagem para
+reduzir o volume transmitido, preservando 320 x 240. Uma escolha anterior
+de Mais nitido continua sendo respeitada; selecione Mais fluido para comparar.
+Os dois perfis usam XCLK de 8 MHz. Veja CORRECAO-FPS-CLOCK.txt.
+
+RECUPERACAO AUTOMATICA
+Depois de entrar nas fotos em sequencia, o painel tenta voltar ao video apos
+um minuto. Se outra transmissao estiver ativa, adia a tentativa.
+Apos 3 s sem quadro novo, avisa Imagem atrasada e remove o FPS antigo.
+Pausar o video ou sair da aba tambem deixa de exibir uma taxa desatualizada.
+A nova area do historico foi validada com preservacao de todos os registros
+e reinicio real da principal. Veja RECUPERACAO-VIDEO-E-MEMORIA.txt.
+
+ATUALIZACAO MAIS RECENTE - 13/11/2026
+Painel: http://192.168.0.135/ | Camera: http://192.168.0.133/ | Rede: CELIA.
+Backup dos albuns preservado. Navegacao de 25 registros por vez instalada.
+LCD em tarefa independente e ajustes de atendimento HTTP instalados.
+Modo Apresentacao e deteccao ativa mantidos; memoria de historico saudavel.
+Consultas extras de rede ainda oscilaram; o usuario relatou atualizacao normal
+no navegador. Veja REVISAO-ESTABILIDADE-E-HISTORICO.txt para os testes e limites.
+Recarregue com Ctrl+F5. ESP32 Dev Module, Huge APP, PSRAM Disabled na principal.
+Manter partitions.csv e os headers junto ao .ino; nao usar Erase All Flash.
+
+
+Melhorias de funcionamento de 15/11/2026
+Sequencia automatica de fotos, miniaturas, detalhes sem imagem, filtros por data, resumo do historico e avisos de camera instalados. Veja EVOLUCAO-DO-PAINEL.txt. Recarregue o painel com Ctrl+F5.
+
+
+Modo noturno programado de 15/11/2026
+Programacao diaria instalada na placa: 22h-07h em Ausente; Monitoramento silencioso fora do intervalo. Respeita a pausa. Fotos exigem painel aberto e visivel. Veja MODO-NOTURNO.txt. Recarregue com Ctrl+F5.

@@ -1,0 +1,51 @@
+RASTRO - CORRECAO DA CONTINUIDADE DO VIDEO - 13/11/2026
+
+IMPLEMENTACAO
+Camera: TCP_NODELAY nas conexoes HTTP e de video, cabecalho multipart agrupado,
+timestamps corrigidos e metricas de captura/envio em /status.
+Sensor inicializado como antes em 20 MHz; depois recebe XCLK de 8 MHz, antes do Wi-Fi.
+JPEG 320 x 240, dois buffers em PSRAM, CAMERA_GRAB_LATEST.
+Painel: Mais fluido usa JPEG 40; Mais nitido usa JPEG 14. Ambos usam 8 MHz.
+Novos navegadores comecam em Mais fluido; uma escolha anterior de Mais nitido
+e respeitada. Mais fluido reduz os detalhes para transmitir quadros menores.
+A correcao do clock na conexao tambem permite sair do modo por fotos e tentar MJPEG.
+
+COMPARACAO NA MESMA CENA ILUMINADA E DETALHADA
+Medido antes da troca para CELIA, com uma unica transmissao, na moto_g86 canal 11:
+JPEG 14: 5,23 FPS, JPEG medio 8179 bytes, maior intervalo 2311 ms (30 s).
+JPEG 30: 11,66 FPS, JPEG medio 5747 bytes, maior intervalo 1785 ms (30 s).
+JPEG 40: 14,09 FPS, JPEG medio 4752 bytes, maior intervalo 412 ms (30 s).
+JPEG 14 repetido: 5,00 FPS, maior intervalo 5899 ms (30 s).
+As quatro rodadas nao tiveram JPEG invalido nem erro registrado.
+As imagens foram conferidas visualmente. Nao e uma promessa de FPS constante.
+O teste de cinco minutos foi interrompido quando o computador mudou de rede;
+nao constitui uma validacao prolongada bem-sucedida.
+
+A reducao do clock sozinha nao resolveu todas as condicoes de rede.
+Os resultados acima comparam qualidades depois das mudancas no servidor;
+nao isolam o ganho individual de TCP_NODELAY.
+
+REDE
+Os dois programas foram configurados para CELIA a pedido do usuario.
+As duas gravacoes foram verificadas. Painel 192.168.0.135; camera 192.168.0.133.
+A principal continua com ESP32 Dev Module, Huge APP, PSRAM Disabled.
+A camera continua com ESP32 Dev Module, Huge APP, PSRAM Enabled.
+Uma gravacao normal da principal preserva o historico e os modos na NVS.
+Os albuns pertencem ao armazenamento do navegador por endereco do painel;
+mudar o IP nao transfere as fotos antigas automaticamente.
+
+TESTE NA CELIA
+Cinco minutos (300,01 s), cena real, uma transmissao, JPEG 40 e 8 MHz:
+3999 quadros, 3999 hashes distintos, nenhum JPEG invalido ou erro registrado.
+Media 13,33 FPS; tamanho medio 4922 bytes; intervalo p95 179 ms.
+Maior intervalo 10330 ms: houve uma travada longa. A melhoria nao elimina
+as pausas ocasionais. Nao foi uma comparacao controlada de roteadores:
+a cena mudou ao refazer a montagem, portanto nao atribuir a diferenca so a CELIA.
+Sinal no fim -62 dBm, canal 2; sem evidencia de reinicio durante a medicao.
+
+VALIDACAO FINAL NA MONTAGEM NORMAL
+Painel conectado, horario sincronizado, Mais fluido ativo e MJPEG observado.
+Historico anterior conferido registro a registro, sem entradas invalidas.
+Modo Apresentacao e registro pausado preservados, contadores 29/47.
+Uma consulta final da camera expirou; a repeticao respondeu. Nao considerar
+a melhora de media como eliminacao de todas as interrupcoes.

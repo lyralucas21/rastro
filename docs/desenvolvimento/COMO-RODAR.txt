@@ -1,0 +1,103 @@
+RASTRO - rede CELIA configurada
+
+ATUALIZACAO DO PAINEL
+1. Mantenha o computador, a principal e a camera na rede CELIA em 2.4 GHz.
+2. Para estas melhorias, grave apenas a ESP32 principal. A camera ja esta pronta.
+3. Abra esp32_principal/esp32_principal.ino, mantendo todos os arquivos da pasta juntos, inclusive partitions.csv.
+4. No Arduino IDE, selecione ESP32 Dev Module e COM5.
+   Partition Scheme: Huge APP (3MB No OTA/1MB SPIFFS). PSRAM: Disabled.
+5. O EN da principal deve ficar fora do GND e os fios TX/RX da camera desconectados.
+   A camera pode continuar alimentada por 5V/GND; GPIO0 da camera fica fora do GND.
+6. Clique em Carregar. Depois abra o Monitor Serial em 115200 baud.
+7. Abra o endereco Painel RASTRO mostrado no Monitor Serial ou no LCD.
+   Endereco na CELIA: http://192.168.0.135/
+8. Recarregue a pagina para ver os novos controles de imagem, pausa e tela cheia.
+
+CAMERA
+Endereco na CELIA: http://192.168.0.133/
+O IP do painel e o IP da camera sao diferentes e podem mudar ao reiniciar o hotspot.
+O principal tambem procura a camera automaticamente na rede.
+Configuracao instalada em 13/11/2026: JPEG, 320 x 240, dois buffers em PSRAM,
+CAMERA_GRAB_LATEST e XCLK de 8 MHz apos a inicializacao do sensor. A resolucao foi preservada.
+Para compilar a CAMERA: ESP32 Dev Module, Huge APP e PSRAM Enabled.
+Para a PRINCIPAL: ESP32 Dev Module, Huge APP e PSRAM Disabled.
+O config.h da camera deve manter CAMERA_TESTE_MEMORIA_INTERNA 0 e
+RASTRO_TESTE_PSRAM_BUFFERS 2. Se a PSRAM nao for detectada, o teste para antes do Wi-Fi.
+A camera ja foi gravada com esse perfil; nao e preciso gravar novamente para usar.
+O backup original completo esta no pacote preparacao-fps-rastro.
+Para voltar ao programa original da camera, siga o LEIA-PRIMEIRO desse pacote.
+Se voltar a programar a camera futuramente, mantenha ESP32 Dev Module no menu.
+A definicao AI Thinker nos arquivos da camera identifica a pinagem dela.
+
+Veja MELHORIAS-DO-PAINEL.txt para a lista de controles e o comportamento da imagem.
+
+Se aparecer apenas pontos/sem conexao: confira nome/senha e hotspot em 2.4 GHz.
+Se aparecer Camera init failed: confira encaixe do cabo, modelo da camera e fonte 5V.
+Se a camera abrir diretamente mas nao no painel: confira CAM_IP_PADRAO, mesma rede
+nas duas placas e comunicacao entre aparelhos permitida no roteador/hotspot.
+
+Os dois config.h contem a senha solicitada. Evite compartilhar este ZIP publicamente.
+
+FLUIDEZ
+Use uma unica transmissao durante a comparacao. Se aparecer Ao vivo - fotos,
+o painel entrou no modo de compatibilidade, que usa capturas separadas e e mais lento.
+O botao Reconectar camera tenta retomar o video continuo.
+As taxas variam com a cena, iluminacao, rede e outros espectadores; nao ha FPS garantido.
+Veja FLUIDEZ-PSRAM.txt para os resultados e as limitacoes da medicao.
+
+ETAPA 2 - HISTORICO PERSISTENTE
+O historico da principal agora fica na memoria interna e retorna apos reiniciar.
+A camera continua com a configuracao de PSRAM instalada anteriormente.
+Para atualizar a principal, mantenha ESP32 Dev Module, Huge APP, PSRAM Disabled.
+Nao habilite Erase All Flash: uma atualizacao comum preserva a NVS.
+Consulte ETAPA-2-HISTORICO.txt para limite, migracao e intervalos de salvamento.
+
+ETAPA 3 - MODOS
+O seletor no painel oferece Monitoramento, Ausente e Apresentacao.
+Modo e pausa retornam apos reiniciar. Consulte ETAPA-3-MODOS.txt.
+Para usar a versao ja instalada, abra o painel e pressione Ctrl+F5.
+
+TROCA PARA CELIA - 13/11/2026
+As duas placas ja foram gravadas e verificadas na CELIA com a senha fornecida.
+O roteador atribui novos IPs; use o LCD/Monitor Serial e mantenha o computador
+na mesma rede. A principal tambem procura a camera na sub-rede.
+Historico e modos ficam na placa. As fotos ficam no navegador e sao vinculadas
+ao endereco antigo do painel; mudar o IP nao transfere esses albuns automaticamente.
+
+ATUALIZACAO: RECUPERACAO DE VIDEO E ESPACO DO HISTORICO
+A principal ja esta atualizada, com retorno automatico do modo de fotos ao video,
+aviso de imagem atrasada e area de 64 KB para historico e modos. A tabela local
+partitions.csv e obrigatoria e e usada automaticamente pelo Arduino IDE.
+O menu continua ESP32 Dev Module, Huge APP, PSRAM Disabled.
+Leia RECUPERACAO-VIDEO-E-MEMORIA.txt. Abra o painel e pressione Ctrl+F5.
+
+ATUALIZACAO FINAL - BACKUP DOS ALBUNS
+Instalada e conferida em 13/11/2026.
+Painel: http://192.168.0.135/
+Camera: http://192.168.0.133/
+Rede atual: CELIA.
+Recarregue o painel com Ctrl+F5 para carregar a versao atualizada.
+Baixar backup exporta fotos e registros em JSON.
+Restaurar backup mostra uma previa e acrescenta dados ao navegador.
+Feche abas antigas se houver aviso de bloqueio na atualizacao das fotos.
+O backup precisa ser baixado antes de trocar o IP ou limpar o navegador.
+Historico, modo e estado de registro atuais foram preservados na placa.
+Consulte BACKUP-DOS-ALBUNS.txt para limites e instrucoes completas.
+
+ATUALIZACAO MAIS RECENTE - 13/11/2026
+Painel: http://192.168.0.135/ | Camera: http://192.168.0.133/ | Rede: CELIA.
+Backup dos albuns preservado. Navegacao de 25 registros por vez instalada.
+LCD em tarefa independente e ajustes de atendimento HTTP instalados.
+Modo Apresentacao e deteccao ativa mantidos; memoria de historico saudavel.
+Consultas extras de rede ainda oscilaram; o usuario relatou atualizacao normal
+no navegador. Veja REVISAO-ESTABILIDADE-E-HISTORICO.txt para os testes e limites.
+Recarregue com Ctrl+F5. ESP32 Dev Module, Huge APP, PSRAM Disabled na principal.
+Manter partitions.csv e os headers junto ao .ino; nao usar Erase All Flash.
+
+
+Melhorias de funcionamento de 15/11/2026
+Sequencia automatica de fotos, miniaturas, detalhes sem imagem, filtros por data, resumo do historico e avisos de camera instalados. Veja EVOLUCAO-DO-PAINEL.txt. Recarregue o painel com Ctrl+F5.
+
+
+Modo noturno programado de 15/11/2026
+Programacao diaria instalada na placa: 22h-07h em Ausente; Monitoramento silencioso fora do intervalo. Respeita a pausa. Fotos exigem painel aberto e visivel. Veja MODO-NOTURNO.txt. Recarregue com Ctrl+F5.

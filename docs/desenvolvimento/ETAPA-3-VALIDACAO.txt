@@ -1,0 +1,48 @@
+ETAPA 3 - VALIDACAO EM 13/11/2026
+
+INSTALADO NA PRINCIPAL
+MAC confirmado f4:65:0b:5a:93:40, COM5.
+ESP32 Dev Module, Huge APP, PSRAM Disabled (opcao padrao do perfil).
+Arduino ESP32 3.3.12. Camera nao regravada nesta etapa.
+Compilacao: 1.048.741 bytes (33%); globais 58.788 bytes (17%).
+Envio concluido; hashes verificados pelo esptool. Area NVS preservada.
+
+TESTES NATIVOS
+PASS: comandos reais do firmware para modos, pausa, teste manual e silencio.
+PASS: seis combinacoes validas de modo/armamento e rejeicao de todos os outros
+valores de configuracao. Retorno seguro sem configuracao ou com dado invalido.
+PASS: falha de gravacao conserva a escolha anterior e retorna erro.
+PASS: Monitoramento bloqueia som; Ausente configura 8 s; Apresentacao 250 ms.
+PASS: novos pulsos no mesmo grupo nao renovam o som; disparo na nova ocorrencia.
+PASS: temporizacao e rollover do relogio de milissegundos.
+PASS: testes anteriores da persistencia (reinicio, limite 100, CRC e falhas),
+albuns, armazenamento cheio, video, associacao de fotos e CSV.
+PASS: seletor envia a identificacao correta e volta ao valor anterior se falhar.
+
+TESTES NA PLACA
+Primeira inicializacao: Monitoramento pausado, salvo, sem som.
+Monitoramento recusou o comando manual com HTTP 409; modo invalido retornou 400.
+Apresentacao foi acionada manualmente e estava desligada na consulta apos 550 ms.
+Ausente aceitou teste manual com duracao configurada de 8000 ms; o teste foi
+silenciado pela troca de modo, sem manter 8 segundos de som durante a validacao.
+O historico anterior foi comparado por identificacao, tipo, horario e deteccoes.
+Apresentacao e pausa salvas. Reinicio real por RTS, sem regravar nem apagar.
+Depois: Apresentacao, pausado, sem som, modoSalvo=true; 76 registros recuperados,
+nenhum invalido; 29 ocorrencias e 47 deteccoes preservadas.
+Regras automaticas do PIR verificadas nos testes nativos com o agrupador real;
+esta validacao na placa usou acionamento manual, sem exigir movimento do usuario.
+Nao houve corte fisico de energia durante uma escrita neste teste.
+
+PAINEL
+Seletor exibiu Monitoramento, Ausente e Apresentacao. Mudanca feita pelo teclado
+no seletor para Apresentacao e de volta para Monitoramento confirmada pela placa.
+Botao de som indisponivel em Monitoramento; indicacao de modo e pausa guardados.
+155 fotos existentes visiveis no navegador da validacao; armazenamento preservado.
+Pagina temporaria de teste fechada ao terminar para nao concorrer pela camera.
+
+ESTADO FINAL
+Monitoramento; registro pausado como antes desta etapa; sirene desligada.
+Modo e pausa salvos. Historico confirmado salvo, nenhum registro invalido.
+Para usar: abrir o painel, Ctrl+F5, escolher o modo e clicar Retomar registro.
+Backup do projeto anterior: ../rastro-antes-etapa3.zip.
+A queda de FPS da camera nao faz parte desta alteracao.

@@ -1,0 +1,46 @@
+ETAPA 2 - VALIDACAO EM 13/11/2026
+
+Principal confirmada na COM5: f4:65:0b:5a:93:40.
+ESP32 Dev Module, Huge APP, PSRAM Disabled (opcao padrao do perfil usado).
+Arduino ESP32 3.3.12. Camera preservada com o perfil anterior.
+Compilacao final: 1.045.605 bytes (33%); globais 58.772 bytes (17%).
+Envio por esptool concluido com hashes de gravacao verificados.
+
+TESTES NATIVOS
+PASS: funcoes reais de registro e persistencia com armazenamento simulado;
+migracao parcial retomada, reinicio, encerramento de ocorrencia aberta,
+limite de 100, reutilizacao circular e reinicios repetidos, falha de escrita
+com nova tentativa, corrupcao CRC, registro truncado, horarios antigos sem
+sincronizacao, geracao com rollover e memoria indisponivel.
+PASS: painel - identificadores de origem, foto associada apos reinicio,
+evento restaurado sem duplicar o album, horarios de outra inicializacao.
+PASS: testes anteriores de albuns, limites de fotos, armazenamento cheio,
+reuso de quadro recente, captura alternativa e exportacao CSV.
+
+TESTE NA PLACA
+55 eventos anteriores migrados. Identificadores, tipo, data, inicio/ultimo
+movimento e deteccoes comparados individualmente com os JSONs de origem.
+Aguardada a confirmacao de historicoPendente=false.
+Reinicio real da principal pelo sinal RTS, sem regravar nem apagar a flash.
+Todos os registros anteriores ao teste recuperados e comparados novamente.
+Contadores 25 ocorrencias / 42 deteccoes preservados; 58 registros recuperados
+na segunda inicializacao (incluindo eventos da primeira instalacao).
+Nenhum registro invalido; historicoPersistente=true.
+Esse teste foi de reinicio, nao de corte fisico de energia durante uma escrita.
+
+PAINEL
+Historico persistente confirmado visualmente. Foto antiga de 10:59:26 aberta
+no registro restaurado. Fotos anteriores preservadas no navegador. Registro
+retomado, sirene automatica desligada como antes, fotos automaticas ativas.
+Uma nova ocorrencia e foto foram observadas apos retomar.
+A camera ficou em modo de compatibilidade durante esta conferencia. A etapa
+2 nao resolveu a oscilacao de FPS nas cenas reais; isso permanece separado.
+
+LIMITES
+Ultimos 100 eventos; os mais antigos sao substituidos. Fotos no navegador.
+Criacao/encerramento em ate cerca de 2 s de execucao normal; atividade em curso
+atualizada em disco a cada 30 s. Corte abrupto pode perder alteracoes recentes.
+Falhas de NVS sao indicadas no painel; a aplicacao nao apaga automaticamente
+a memoria para tentar se recuperar.
+Backup integral anterior: ../esp32-principal-antes-etapa2-4MB.bin (4 MB).
+SHA-256 do backup: C9A4D7E9570E869FBB72750F30379D0EBA9A52F369134F0B254438FF20FBC455.

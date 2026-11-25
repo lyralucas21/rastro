@@ -1,0 +1,78 @@
+MELHORIAS DE FUNCIONAMENTO - 15/11/2026
+
+INSTALADO NA PRINCIPAL
+Painel: http://192.168.0.135/ | Camera: http://192.168.0.133/
+Rede preservada; ESP32 Dev Module, Huge APP, PSRAM Disabled na principal.
+Recarregue o painel com Ctrl+F5 para receber a pagina nova.
+
+SEQUENCIA DAS OCORRENCIAS
+A janela apresenta os dados atuais da ocorrencia, horarios e detalhes do PIR.
+Miniaturas selecionaveis mostram a ordem das fotos e o intervalo desde a
+primeira captura quando ha timestamps disponiveis. Reproduzir sequencia
+avanca a cada 1,4 segundo e para na ultima foto. As setas do teclado e os
+botoes permitem navegar manualmente; isso pausa a reproducao automatica.
+Fechar a janela ou esconder a aba interrompe a reproducao e libera recursos.
+A sequencia e um album de imagens salvas, nao um video gravado do evento.
+
+OCORRENCIAS SEM FOTOS
+Ver ocorrencia abre os detalhes mesmo se nenhuma foto tiver sido salva.
+As fotos continuam dependendo do painel aberto e visivel, da captura
+automatica ligada, da camera acessivel e do espaco no navegador.
+Continuam os limites de ate 5 fotos por ocorrencia e 300 fotos no navegador.
+
+FILTROS E RESUMO
+Datas inicial e final sao inclusivas e podem ser usadas separadamente.
+Sem horario sincronizado, o registro fica fora de filtros por data e graficos.
+Limpar filtros restaura busca, tipo, fotos e datas; a navegacao volta ao inicio.
+O resumo respeita todos os filtros e conta ocorrencias, fotos e intervalo
+medio entre o primeiro e o ultimo sinal do PIR. Esse intervalo nao mede a
+permanencia de uma pessoa. O PIR nao identifica nem conta pessoas.
+O grafico mostra ocorrencias por hora; os botoes dos sete dias mais recentes
+disponiveis filtram o dia selecionado. Empates de horario sao indicados.
+Estes dados representam o historico disponivel, nao um levantamento completo
+de todos os dias. A placa conserva 100 eventos; arquivos importados e fotos
+podem ampliar o conjunto visivel neste navegador.
+CSV exporta todos os registros dos filtros, nao apenas a pagina de 25 linhas.
+O HTML e enviado diretamente da flash em partes com tamanho HTTP exato,
+substituindo o endereco da camera sem copiar a pagina inteira para uma String.
+Isso evita o limite de 65535 bytes dessa biblioteca com PSRAM desativada.
+Backup continua incluindo o conjunto disponivel, independente dos filtros.
+
+CAMERA
+Os avisos distinguem camera sem resposta de transmissao interrompida.
+As tentativas de recuperacao continuam automaticas. Se outra transmissao
+estiver ativa, o painel usa fotos em sequencia e tenta retornar ao video
+depois. Nessa situacao nao muda o clock nem a qualidade do outro espectador.
+Fotos em sequencia podem ter menos quadros por segundo que o video.
+A camera nao foi regravada nesta etapa. Nao houve novo ensaio de FPS nem
+comprovacao de que todas as oscilacoes de rede anteriores desapareceram.
+
+VALIDACAO
+Passaram os testes de evolucao, navegacao, painel, albuns, backup, recuperacao
+de camera, modos, perfil fluido e clock. O backup manteve os testes com
+IndexedDB, migracao, transacoes atomicas, concorrencia e preservacao de JPEG.
+O envio HTTP foi testado acima de 160 KB, com tamanho e bytes exatos,
+marcadores multiplos, adjacentes, nos extremos e substituicao vazia.
+Testes novos cobrem datas inclusivas e invertidas, datas ausentes, horarios,
+intervalos com retorno do contador, detalhes sem foto, metadados atuais,
+miniaturas, reproducao automatica, interrupcao manual e liberacao das URLs.
+Testes de camera cobrem outro espectador desde a primeira conexao e protecao
+do clock/qualidade, falha de conexao e tentativa automatica.
+No navegador foram conferidos reproducao ate a ultima foto, detalhes sem
+foto, filtro sem resultados e limpeza dos filtros. As imagens painel-teste.jpg
+e sequencia-teste.jpg mostram dados de teste, nao uma medicao atual da placa.
+
+PRESERVACAO NA INSTALACAO
+Copia fisica da memoria salva antes da gravacao em memoria-antes.bin.
+Somente o programa da principal foi gravado em 0x10000; particoes e NVS nao
+foram apagadas. A pagina recebida da placa foi comparada integralmente aos
+fontes. Modo apresentacao e deteccao ativa conferidos.
+Dos 100 eventos anteriores, 72 foram conferidos;
+28 sairam pelo limite normal de 100 apos novos registros/inicializacoes.
+A copia fisica conserva o estado completo anterior. Contadores nao reduziram.
+Fotos e arquivos do navegador continuam no mesmo banco, sem migracao nova.
+
+IMPORTANTE PARA ATUALIZAR NO ARDUINO
+Mantenha todos os headers e partitions.csv junto ao sketch da principal.
+Nao usar Erase All Flash nem gravar a memoria inicial em uma atualizacao normal.
+As instrucoes anteriores de configuracao de rede e montagem continuam validas.

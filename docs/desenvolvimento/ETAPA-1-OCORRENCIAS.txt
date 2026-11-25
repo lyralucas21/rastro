@@ -1,0 +1,25 @@
+ETAPA 1 - OCORRENCIAS DE MOVIMENTO
+
+Deteccoes proximas compartilham um registro no ESP32 principal.
+Enquanto o PIR estiver ativo, a ocorrencia permanece aberta.
+Uma nova subida do sinal incrementa a quantidade de deteccoes da mesma ocorrencia
+se ainda nao transcorreram 10 segundos desde o ultimo sinal ativo.
+Depois de 10 segundos sem sinal, a ocorrencia e encerrada.
+Pausar o registro tambem encerra a ocorrencia; retomar inicia uma nova.
+
+O painel mostra inicio, ultimo movimento, quantidade de deteccoes, intervalo
+entre inicio e ultimo movimento e estado (em andamento/encerrada).
+O intervalo exibido nao inclui os 10 segundos de espera para encerrar.
+O contador principal representa ocorrencias, nao pessoas nem pulsos individuais.
+Um sinal continuamente alto conta como uma deteccao.
+As atualizacoes permanecem na mesma linha e conservam a foto associada.
+O CSV inclui os detalhes e o horario do ultimo movimento.
+
+O agrupamento acontece na principal, inclusive com o navegador fechado.
+As fotos automaticas continuam dependendo da pagina aberta e sao capturadas
+no inicio de uma nova ocorrencia. Esta etapa nao cria sequencias de fotos.
+Na etapa 1 o historico era apagado ao reiniciar. A etapa 2 passou a preservar
+os ultimos 100 eventos; consulte ETAPA-2-HISTORICO.txt.
+
+Gravar apenas esp32_principal/esp32_principal.ino com os demais arquivos da pasta.
+Placa: ESP32 Dev Module; Huge APP; PSRAM Disabled.

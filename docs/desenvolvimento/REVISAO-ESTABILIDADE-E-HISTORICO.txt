@@ -1,0 +1,75 @@
+REVISAO E MELHORIAS DO PAINEL - 13/11/2026
+
+REVISAO DA VERSAO MAIS RECENTE
+A conversa Retomar configuracao do Wi-Fi concluiu a instalacao do backup.
+A copia daquela conversa e os fontes desta pasta tinham o mesmo codigo;
+apenas ATUALIZACAO-FINAL.txt e COMO-RODAR.txt diferiam. As instrucoes foram
+sincronizadas antes destas melhorias. Os testes do backup continuaram passando.
+
+NAVEGACAO DO HISTORICO
+25 registros por vez, com Anterior, Proxima e Mais recentes.
+Buscar e filtrar examinam o conjunto inteiro de registros.
+CSV e backup continuam incluindo todos os registros correspondentes, mesmo
+os que nao estao na pagina visivel. Nenhum evento foi removido pela paginacao.
+Ao navegar em registros antigos, a primeira linha e mantida quando chegam
+registros novos. Alterar a busca ou o filtro retorna ao inicio da lista.
+A renderizacao foi testada com 10000 registros, mantendo 25 linhas na tabela.
+No navegador, um novo evento foi simulado na segunda pagina e a leitura
+permaneceu na mesma linha. Busca e retorno aos recentes foram conferidos.
+A imagem navegacao-teste.png mostra esse ambiente isolado de teste.
+
+DISPLAY
+A inicializacao e a escrita no LCD agora rodam numa tarefa separada.
+O ciclo principal envia copias de duas linhas por uma fila de capacidade 1;
+a mensagem mais recente substitui uma atualizacao que ainda nao foi exibida.
+Textos repetidos nao provocam reescrita. Falha ou demora no display nao
+mantem a escrita I2C dentro do ciclo que atende HTTP e processa o PIR.
+A disponibilidade do display e informada na saude do dispositivo quando falha.
+Na verificacao da placa, o LCD respondeu normalmente.
+
+ATENDIMENTO HTTP
+O servidor atende conexoes com dados prontos antes de esperar conexoes vazias.
+A fila e limitada a quatro conexoes; conexoes ociosas expiram ou cedem espaco
+sob pressao. O parser HTTP da biblioteca oficial continua processando os pedidos.
+As respostas usam TCP_NODELAY explicitamente no socket aceito. Essa chamada
+nao depende da opcao do NetworkServer, que e redefinida pelo begin no SDK usado.
+O modo sem economia de energia e reaplicado depois da conexao Wi-Fi; a API
+confirmou wifiPowerSave=0. A rede permanece CELIA.
+Testado com esp32 by Espressif Systems 3.3.12, ESP32 Dev Module, Huge APP e
+PSRAM Disabled. Camera e tabela de particoes nao foram regravadas nesta etapa.
+
+RESULTADOS E LIMITACOES
+O teste controlado com uma conexao ociosa e outro GET /status expirou em 12 s
+antes da correcao. Depois dos ajustes, uma rodada respondeu em 1470 ms,
+mantendo a conexao ociosa aberta. Uma rodada nao garante latencia constante.
+Consultas extras de verificacao ainda oscilaram: na observacao final, 9 das
+13 consultas da principal ultrapassaram o limite de 6 s; as sete consultas da
+camera responderam. Nas respostas validas nao houve mudanca de sessao nem
+falha do LCD. O usuario confirmou que o painel no seu navegador esta
+atualizando normalmente. A causa completa dessas oscilacoes nao foi isolada;
+nao considerar toda a instabilidade de rede resolvida.
+
+PRESERVACAO
+Antes de gravar, a memoria de historico foi copiada integralmente pela USB.
+O modo, a deteccao ativa, os contadores e os eventos retidos foram conferidos
+contra essa copia. O historico da placa permanece uma fila de 100 eventos.
+A nova inicializacao substituiu o registro mais antigo ao ultrapassar esse
+limite; os demais 99 registros anteriores foram conferidos. A copia fisica
+anterior conserva o estado completo de antes da gravacao.
+Os albuns e o banco de fotos do navegador nao mudaram de versao (versao 3).
+
+VALIDACAO DE CODIGO
+Passaram testes de navegacao, busca, lista vazia, reducao do conjunto,
+ancoragem na ultima pagina, CSV e backup completos com 10000 registros.
+Passaram os testes de backup, migracao, gravacao atomica, concorrencia entre
+abas, albuns, modos, perfil fluido, clock e recuperacao do video.
+O produtor do LCD foi testado sem acesso sincrono a Wire/display, inclusive
+com display ausente, recuperacao e falha ao criar a tarefa.
+A fila HTTP foi testada com conexoes ociosas, headers atrasados, bytes de POST,
+fila cheia, expiracao, atendimento em ordem e retorno do contador millis.
+
+USO
+Painel: http://192.168.0.135/
+Camera: http://192.168.0.133/
+Recarregue o painel com Ctrl+F5. A montagem continua normal e a deteccao ativa.
+Manter todos os headers e partitions.csv junto ao sketch. Nao usar Erase All Flash.

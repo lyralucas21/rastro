@@ -1,0 +1,70 @@
+RECUPERACAO DO VIDEO E MEMORIA DO HISTORICO - 13/11/2026
+
+VIDEO
+Depois de duas falhas, fotos em sequencia mantem a visualizacao temporaria.
+Apos 60 segundos nesse modo, o painel tenta voltar ao MJPEG automaticamente.
+Se a camera informar outra transmissao ativa, adia a tentativa para evitar
+concorrencia. O botao Reconectar continua permitindo a tentativa imediata.
+Sem quadro novo por 3 segundos, o painel mostra Imagem atrasada e deixa de
+exibir o FPS antigo. Ao receber nova imagem, volta ao indicador Ao vivo.
+Pausar ou sair da aba tambem remove o FPS antigo e cancela os temporizadores.
+Nao aumenta o limite fisico de FPS nem elimina todas as pausas da rede.
+
+TESTES DO VIDEO
+Testes automatizados: retorno automatico, respeito a outro espectador,
+aviso de atraso, retomada, cancelamento, pausa, albuns, modos e perfil fluido.
+Teste isolado no navegador: duas tentativas de video interrompidas em 10 s;
+modo por fotos observado; nova conexao MJPEG cerca de 60 s depois, sem clique.
+A camera do teste usa imagens de exemplo; seus 4,9 FPS nao medem a placa real.
+O resultado de 13,33 FPS na CELIA pertence ao teste real anterior de 5 minutos.
+
+MEMORIA
+O espaco de 20 KB compartilhado com configuracoes internas ficou insuficiente
+para novos registros. Foi instalada uma area NVS de 64 KB exclusiva para
+historico e modo. O limite do produto continua sendo 100 eventos.
+O programa e a memoria original permanecem nas mesmas posicoes.
+A area SPIFFS, que este projeto nao monta nem usa, fica 64 KB menor;
+a area de diagnostico de falhas do ESP32 e mantida.
+
+A pasta esp32_principal deve manter partitions.csv junto ao .ino e headers.
+A placa continua ESP32 Dev Module, Huge APP, PSRAM Disabled. A tabela local
+partitions.csv e usada automaticamente pelo Arduino. Nao gravar uma tabela
+padrao por cima da personalizada, pois o historico ampliado depende dela.
+A camera nao precisa de nova gravacao.
+
+A migracao entre namespaces mantem os dados originais e grava seu marcador
+somente depois de copiar e conferir tudo. Retoma apos interrupcao de energia.
+Nesta instalacao, a nova area e preenchida com os 89 registros do painel,
+incluindo o evento que estava apenas em RAM. Origens, IDs, datas, modo,
+pausa e contadores sao preservados. A NVS anterior e a area que sera reutilizada
+sao guardadas como binarios antes de gravar a nova tabela.
+Nao usar Erase All Flash para atualizar.
+
+TESTES DA MEMORIA
+104 pontos de interrupcao e retomada da migracao, 100 registros, modo/pausa,
+particao ausente, registro truncado, CRC, fila circular e reinicios repetidos.
+Os 89 registros preparados foram validados pelo codec C++ do firmware.
+Os ordinais de 86 registros foram comparados com o backup fisico anterior.
+A imagem NVS e gerada pela ferramenta oficial da Espressif:
+https://github.com/espressif/esp-idf/tree/v5.5.4/components/nvs_flash/nvs_partition_generator
+
+VALIDACAO NA PLACA
+Gravacao do programa, tabela e memoria verificada por hash pelo esptool.
+Os 89 eventos anteriores foram comparados integralmente com o painel.
+Um novo evento foi salvo na area ampliada, seguido de um reinicio real.
+Depois do reinicio, todos os eventos anteriores permaneceram, com a gravacao
+persistente saudavel, sem registros invalidos. Modo e pausa mantidos.
+Contadores: 29 ocorrencias e 47 deteccoes; nenhum disparo artificial de sensor.
+A verificacao visual final no Chrome foi interrompida porque a ferramenta nao
+conseguiu confirmar o endereco da aba; nao houve novas acoes nessa janela.
+A recuperacao automatica foi observada no teste isolado no navegador, e a
+persistencia foi validada diretamente pela API da placa antes e depois de reiniciar.
+
+ATUALIZACOES FUTURAS
+Manter partitions.csv e todos os headers junto ao .ino. Nao usar Erase All Flash.
+A imagem historico-ampliado-nvs.bin e apenas a copia da migracao inicial;
+NAO regrava-la em atualizacoes normais, pois substituiria eventos posteriores.
+Os backups da tabela original, NVS anterior e area reutilizada estao em
+recuperacao-video-validacao. Restauracoes devem considerar tambem a tabela
+personalizada e os eventos registrados depois desses backups.
+A area reutilizada de 64 KB estava totalmente apagada (0xFF) no backup.

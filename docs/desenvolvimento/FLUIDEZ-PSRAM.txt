@@ -1,0 +1,25 @@
+RASTRO - CONFIGURACAO DE VIDEO ATUAL - 13/11/2026
+
+Camera: ESP32 Dev Module, Huge APP, PSRAM Enabled.
+JPEG QVGA 320 x 240, dois buffers em PSRAM, CAMERA_GRAB_LATEST.
+XCLK de 8 MHz aplicado depois da inicializacao do sensor em 20 MHz.
+O firmware inicia com JPEG 18; o painel aplica o perfil selecionado:
+Mais fluido = JPEG 40; Mais nitido = JPEG 14.
+O servidor usa TCP_NODELAY, cabecalho agrupado e metricas em /status.
+
+A principal usa ESP32 Dev Module, Huge APP, PSRAM Disabled.
+Mantenha EN da principal e GPIO0 da camera fora do GND no uso normal,
+com os dois fios TX/RX da ponte retirados e a camera alimentada em 5V/GND.
+
+Veja CORRECAO-FPS-CLOCK.txt para os testes comparativos de continuidade.
+As taxas dependem de cena, iluminacao, rede e outros espectadores.
+Use uma unica transmissao para comparar. O modo Ao vivo - fotos e mais lento;
+Reconectar camera tenta voltar ao MJPEG.
+
+Os dois programas foram gravados e verificados para CELIA. Os IPs anteriores da moto_g86
+nao devem ser usados nessa rede. Consulte o LCD/Monitor Serial ou o registro
+REDE-CELIA.txt, com os enderecos validados.
+
+O backup original integral e os binarios do perfil anterior permanecem no
+pacote preparacao-fps-rastro. Uma imagem integral de 4MB nao deve ser
+confundida com o aplicativo destinado ao endereco 0x10000.

@@ -1,0 +1,8 @@
+ATUALIZACAO MAIS RECENTE - 15/11/2026
+Modo noturno instalado e ativado: 22:00 a 07:00 em Ausente.
+Fora desse horario: Monitoramento silencioso. Respeita a pausa do registro.
+A troca de modo roda na propria placa; fotos exigem o painel aberto e visivel.
+Painel: http://192.168.0.135/ | Camera: http://192.168.0.133/
+Recarregue com Ctrl+F5. Veja MODO-NOTURNO.txt para funcionamento e testes.
+ESP32 Dev Module, Huge APP, PSRAM Disabled; manter partitions.csv e headers.
+Nao usar Erase All Flash.

@@ -1,0 +1,32 @@
+RASTRO - REDE CELIA - 13/11/2026
+
+Camera gravada e verificada: http://192.168.0.133/
+Principal gravada e identificada na CELIA: http://192.168.0.135/
+Os IPs sao atribuidos pelo roteador e podem mudar; o LCD mostra o do painel.
+O computador tambem deve estar na CELIA.
+
+Camera: ESP32 Dev Module, Huge APP, PSRAM Enabled.
+Principal: ESP32 Dev Module, Huge APP, PSRAM Disabled.
+As duas configuracoes contem a senha fornecida pelo usuario.
+
+Montagem normal restaurada pelo usuario: EN da principal livre, TX/RX da
+ponte retirados, GPIO0 da camera livre, camera alimentada em 5V/GND.
+LCD, sensor e buzzer preservados.
+
+Historico anterior conferido registro a registro; contadores 29 ocorrencias
+com 47 deteccoes, sem registros invalidos. Modo Apresentacao e registro
+pausado preservados. O registro so volta a detectar ao clicar Retomar registro.
+
+O IP novo usa outro armazenamento do navegador. As fotos antigas continuam
+vinculadas ao IP anterior; a troca da rede nao transfere albuns automaticamente.
+
+Video: selecione Mais fluido para usar JPEG 40, 320 x 240 e clock 8 MHz.
+Medicao na CELIA: 3999 quadros em 300,01 s, media 13,33 FPS, zero JPEG invalido.
+Houve intervalo maximo de 10,33 s; nao ha promessa de fluidez constante.
+Veja CORRECAO-FPS-CLOCK.txt para as condicoes e os limites da medicao.
+
+Ajuste complementar instalado e verificado: principal sem economia de energia
+Wi-Fi; NTP iniciado apos obter conexao, com tres servidores alternativos.
+Horario sincronizado confirmado e painel observado conectado, com video ao vivo.
+Uma consulta final da camera expirou; a repeticao respondeu. Permanecem
+oscilacoes ocasionais, como a pausa medida no teste prolongado.

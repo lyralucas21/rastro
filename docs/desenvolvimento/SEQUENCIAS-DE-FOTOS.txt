@@ -1,0 +1,35 @@
+SEQUENCIAS DE FOTOS POR OCORRENCIA
+
+O painel fotografa uma nova ocorrencia e acrescenta imagens enquanto o PIR
+estiver ativo. Aguarda no minimo 4 segundos entre o termino de uma captura
+e a proxima tentativa. A consulta da placa e a rede podem aumentar esse tempo.
+Cada ocorrencia recebe no maximo 5 fotos. O limite global continua sendo
+300 imagens neste navegador, contando tambem as fotos antigas e as manuais.
+Nao ha exclusao automatica de imagens.
+O uso do armazenamento e mostrado perto dos controles. Se atingir o limite ou
+faltar espaco no navegador, um aviso permanente explica a pausa das capturas.
+Quando o video tem um quadro recente (menos de 1,5 s), a foto usa esse quadro,
+com o horario dele, sem reiniciar a transmissao. Sem quadro recente, usa /capture.
+Se o video entrar no modo de compatibilidade, esse modo e mantido durante
+as capturas e pausas da pagina. Reconectar camera tenta o video continuo novamente.
+
+A pagina precisa ficar aberta e visivel, com Fotografar ocorrencias habilitado.
+Pausar o video nao desativa as fotos automaticas. Ocultar a aba, pausar o registro
+ou encerrar uma ocorrencia impede novas capturas automaticas. Uma captura ja
+em andamento pode terminar. Ao voltar para uma ocorrencia ainda ativa, o painel
+pode continuar o album ate o limite; nao recupera imagens do periodo ausente.
+
+Ver sequencia abre o album, com Anterior/Proxima, horario individual e download
+da imagem selecionada. As setas do teclado tambem funcionam no visualizador.
+Fotos antigas continuam abrindo como albuns de uma imagem, no navegador e
+endereco em que foram salvas. O banco de fotos nao e apagado nem recriado.
+Uma captura manual cria um registro separado com uma foto.
+
+O historico e ordenado do registro mais recente para o mais antigo.
+Fotos cujo evento ja nao esta no historico da placa mostram os dados salvos
+com a imagem, sem afirmar que aquela ocorrencia antiga continua em andamento.
+O CSV informa a quantidade de fotos em cada sequencia.
+As imagens mostram o momento da captura, sujeito a latencia da rede.
+
+Gravar somente esp32_principal.ino com os demais arquivos da pasta.
+Placa: ESP32 Dev Module; Huge APP; PSRAM Disabled.

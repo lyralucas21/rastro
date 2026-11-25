@@ -1,0 +1,41 @@
+ETAPA 3 - MODOS DE FUNCIONAMENTO
+
+MONITORAMENTO
+Registra movimento e permite as fotos automaticas, sem emitir som.
+O botao de teste de som fica indisponivel; a principal tambem recusa esse comando.
+
+AUSENTE
+Registra e permite fotos. Aciona a sirene por ate 8 segundos ao iniciar uma
+nova ocorrencia, uma unica vez. Novos pulsos na mesma ocorrencia nao prolongam o som.
+O botao de teste manual pode ser usado para testar ou silenciar a sirene.
+
+APRESENTACAO
+Registra e permite fotos. Um toque de 250 ms ao iniciar cada ocorrencia.
+Tambem permite testar o toque pelo painel, sem bloquear a leitura do sensor.
+
+REGRAS GERAIS
+O sensor continua agrupando movimentos com a janela de 10 s da etapa 1.
+O modo atua na reacao sonora; as regras de fotos e do historico foram preservadas.
+Fotos automaticas exigem o painel aberto e visivel e a opcao de fotos ativada.
+Pausar o registro interrompe o som e encerra a ocorrencia atual.
+Trocar de modo silencia o som atual. A proxima ocorrencia usa o novo modo;
+a troca nao emite um aviso sonoro nem cria uma nova ocorrencia de movimento.
+O teste de som e uma acao manual, inclusive quando o registro esta pausado.
+
+MODO E PAUSA APOS REINICIAR
+Modo e estado pausado/registrando sao salvos juntos em uma configuracao da NVS.
+Uma alteracao so e confirmada quando a memoria aceita a gravacao.
+Se a gravacao falhar, a escolha anterior continua ativa e o painel informa a falha.
+O som em andamento nunca e retomado depois de reiniciar.
+A calibracao inicial de 30 s do PIR continua valendo.
+
+Primeiro uso, memoria indisponivel ou configuracao invalida: Monitoramento pausado.
+A escolha padrao e inicializada sem som. O painel informa se o salvamento foi confirmado.
+Esta instalacao preserva a pausa observada antes da atualizacao.
+
+INSTALACAO
+Gravar somente a principal: ESP32 Dev Module, Huge APP, PSRAM Disabled.
+Nao usar Erase All Flash. O historico da etapa 2 e a configuracao ficam na NVS.
+A camera conserva a configuracao anterior. Esta etapa nao altera a taxa de quadros.
+Depois de atualizar, recarregar o painel com Ctrl+F5 para ver o seletor de modos.
+Os comandos do controle antigo de sirene automatica sao recusados; usar o painel novo.
