@@ -1,3 +1,20 @@
+// =============================================================================
+// RASTRO — firmware da ESP32-CAM (AI-Thinker, câmera OV2640)
+// Baseado no exemplo CameraWebServer da Espressif (créditos mantidos nos arquivos).
+//
+// Papel no projeto: servir imagens na rede local para o painel do RASTRO.
+//   * http://IP-DA-CAMERA:81/stream  vídeo MJPEG ao vivo
+//   * http://IP-DA-CAMERA/capture    uma foto JPEG
+//   * http://IP-DA-CAMERA/status     configuração atual (usada pelo ESP32
+//                                    principal para encontrar a câmera na rede)
+//   * http://IP-DA-CAMERA/control    ajustes (o painel troca a qualidade JPEG)
+// Ajustes do RASTRO: QVGA 320x240, dois buffers na PSRAM com CAMERA_GRAB_LATEST,
+// XCLK reduzido para 8 MHz após iniciar o sensor e detector de brownout desligado.
+// A câmera não tem fios de dados com o ESP32 principal: tudo passa pelo Wi-Fi.
+//
+// Placa no Arduino IDE: ESP32 Dev Module · Huge APP · PSRAM Enabled.
+// Copie config.exemplo.h para config.h e preencha a rede Wi-Fi (2,4 GHz).
+// =============================================================================
 #include <Arduino.h>
 #include "esp_camera.h"
 #include <WiFi.h>
@@ -75,14 +92,40 @@ void setup() {
   pinMode(14, INPUT_PULLUP);
 #endif
 
+#if CAMERA_TESTE_MEMORIA_INTERNA
+  config.frame_size = FRAMESIZE_QVGA;
+  config.fb_location = CAMERA_FB_IN_DRAM;
+  config.fb_count = 1;
+  config.grab_mode = CAMERA_GRAB_WHEN_EMPTY;
+  Serial.println("Teste de imagem: QVGA, um quadro, memoria interna.");
+#endif
+#if RASTRO_TESTE_PSRAM_BUFFERS != 1 && RASTRO_TESTE_PSRAM_BUFFERS != 2
+#error "RASTRO_TESTE_PSRAM_BUFFERS deve ser 1 ou 2"
+#endif
+  if (!psramFound()) {
+    Serial.println("TESTE CANCELADO: PSRAM nao detectada. Confira PSRAM Enabled no menu e volte ao backup se necessario.");
+    return;
+  }
+  config.frame_size = FRAMESIZE_QVGA;
+  config.pixel_format = PIXFORMAT_JPEG;
+  config.jpeg_quality = 18;
+  config.fb_location = CAMERA_FB_IN_PSRAM;
+  config.fb_count = RASTRO_TESTE_PSRAM_BUFFERS;
+  config.grab_mode = RASTRO_TESTE_PSRAM_BUFFERS == 2 ? CAMERA_GRAB_LATEST : CAMERA_GRAB_WHEN_EMPTY;
+  Serial.printf("TESTE RASTRO: PSRAM, QVGA, %u buffer(s).\n", (unsigned)config.fb_count);
+
+  Serial.printf("PSRAM detectada: %s; memoria livre: %u bytes\n", psramFound() ? "sim" : "nao", (unsigned)ESP.getFreeHeap());
+
   // camera init
   esp_err_t err = esp_camera_init(&config);
   if (err != ESP_OK) {
-    Serial.printf("Camera init failed with error 0x%x", err);
+    Serial.printf("Camera init failed with error 0x%x\n", err);
+    Serial.println("Confira o cabo da camera, o modelo AI-Thinker e a alimentacao 5V.");
     return;
   }
 
   sensor_t *s = esp_camera_sensor_get();
+  Serial.printf("Sensor da camera: 0x%04x\n", s->id.PID);
   // initial sensors are flipped vertically and colors are a bit saturated
   if (s->id.PID == OV3660_PID) {
     s->set_vflip(s, 1);        // flip it back
@@ -103,18 +146,31 @@ void setup() {
   s->set_vflip(s, 1);
 #endif
 
+// Keep the tested sensor initialization, then apply the validated runtime clock.
+  if(s->set_xclk(s,LEDC_TIMER_0,8)!=0)Serial.println("Nao foi possivel aplicar XCLK 8 MHz.");
+  else Serial.println("RASTRO: XCLK 8 MHz; servidor TCP_NODELAY.");
+
 // Setup LED FLash if LED pin is defined in camera_pins.h
 #if defined(LED_GPIO_NUM)
   setupLedFlash();
 #endif
 
+  WiFi.mode(WIFI_STA);
+  WiFi.setAutoReconnect(true);
   WiFi.begin(ssid, password);
   WiFi.setSleep(false);
 
-  Serial.print("WiFi connecting");
+  Serial.printf("Conectando ao Wi-Fi: %s\n", ssid);
+  uint32_t inicioTentativa = millis();
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
+    if (millis() - inicioTentativa >= 20000) {
+      Serial.printf("\nSem conexao (status %d). Confira rede, senha e hotspot em 2.4 GHz. Tentando novamente...\n", WiFi.status());
+      WiFi.disconnect();
+      WiFi.begin(ssid, password);
+      inicioTentativa = millis();
+    }
   }
   Serial.println("");
   Serial.println("WiFi connected");
@@ -124,9 +180,18 @@ void setup() {
   Serial.print("Camera Ready! Use 'http://");
   Serial.print(WiFi.localIP());
   Serial.println("' to connect");
+  Serial.print("Video ao vivo: http://");
+  Serial.print(WiFi.localIP());
+  Serial.println(":81/stream");
 }
 
 void loop() {
-  // Do nothing. Everything is done in another task by the web server
+  // Repete o IP para quem abrir o Monitor Serial depois da inicializacao.
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.print("ESP32-CAM: http://");
+    Serial.println(WiFi.localIP());
+  } else {
+    Serial.printf("ESP32-CAM sem Wi-Fi (status %d). Aguardando reconexao...\n", WiFi.status());
+  }
   delay(10000);
 }

@@ -22,6 +22,9 @@
 #include "sdkconfig.h"
 #include "camera_index.h"
 #include "board_config.h"
+#include <WiFi.h>
+#include <lwip/sockets.h>
+#include <lwip/tcp.h>
 
 #if defined(ARDUINO_ARCH_ESP32) && defined(CONFIG_ARDUHAL_ESP_LOG)
 #include "esp32-hal-log.h"
@@ -43,8 +46,31 @@ typedef struct {
 
 #define PART_BOUNDARY "123456789000000000000987654321"
 static const char *_STREAM_CONTENT_TYPE = "multipart/x-mixed-replace;boundary=" PART_BOUNDARY;
-static const char *_STREAM_BOUNDARY = "\r\n--" PART_BOUNDARY "\r\n";
-static const char *_STREAM_PART = "Content-Type: image/jpeg\r\nContent-Length: %u\r\nX-Timestamp: %d.%06d\r\n\r\n";
+static const char *_STREAM_PART = "\r\n--" PART_BOUNDARY "\r\nContent-Type: image/jpeg\r\nContent-Length: %u\r\nX-Timestamp: %lld.%06ld\r\n\r\n";
+
+// Small snapshots let /status distinguish capture stalls from network stalls.
+struct RastroStreamStats {
+  uint32_t frames=0,startMs=0,lastMs=0,frameBytes=0,captureUs=0,sendUs=0;
+  bool active=false;
+};
+static RastroStreamStats rastroStream;
+static portMUX_TYPE rastroStatsLock=portMUX_INITIALIZER_UNLOCKED;
+static void rastroStreamStart(){
+  portENTER_CRITICAL(&rastroStatsLock);rastroStream=RastroStreamStats{};
+  rastroStream.startMs=millis();rastroStream.active=true;portEXIT_CRITICAL(&rastroStatsLock);
+}
+static void rastroStreamFrame(uint32_t captureUs,uint32_t sendUs,size_t bytes){
+  portENTER_CRITICAL(&rastroStatsLock);const bool first=rastroStream.frames==0;++rastroStream.frames;
+  rastroStream.lastMs=millis();rastroStream.frameBytes=bytes;
+  rastroStream.captureUs=first?captureUs:uint32_t((uint64_t(rastroStream.captureUs)*7+captureUs)/8);
+  rastroStream.sendUs=first?sendUs:uint32_t((uint64_t(rastroStream.sendUs)*7+sendUs)/8);
+  portEXIT_CRITICAL(&rastroStatsLock);
+}
+static esp_err_t rastroSocketOpen(httpd_handle_t,int socket){
+  int enabled=1;
+  if(setsockopt(socket,IPPROTO_TCP,TCP_NODELAY,&enabled,sizeof(enabled))!=0)log_w("TCP_NODELAY unavailable on socket %d",socket);
+  return ESP_OK;
+}
 
 httpd_handle_t stream_httpd = NULL;
 httpd_handle_t camera_httpd = NULL;
@@ -189,10 +215,13 @@ static esp_err_t capture_handler(httpd_req_t *req) {
   size_t fb_len = 0;
 #endif
   if (fb->format == PIXFORMAT_JPEG) {
+    Serial.printf("Foto capturada: %u bytes; inicio JPEG: %02X %02X\n", (unsigned)fb->len,
+                  fb->len > 0 ? fb->buf[0] : 0, fb->len > 1 ? fb->buf[1] : 0);
 #if ARDUHAL_LOG_LEVEL >= ARDUHAL_LOG_LEVEL_INFO
     fb_len = fb->len;
 #endif
     res = httpd_resp_send(req, (const char *)fb->buf, fb->len);
+    Serial.printf("Envio da foto: %s (0x%x)\n", esp_err_to_name(res), (unsigned)res);
   } else {
     jpg_chunking_t jchunk = {req, 0};
     res = frame2jpg_cb(fb, 80, jpg_encode_stream, &jchunk) ? ESP_OK : ESP_FAIL;
@@ -215,16 +244,14 @@ static esp_err_t stream_handler(httpd_req_t *req) {
   esp_err_t res = ESP_OK;
   size_t _jpg_buf_len = 0;
   uint8_t *_jpg_buf = NULL;
-  char *part_buf[128];
+  char part_buf[256];
 
-  static int64_t last_frame = 0;
-  if (!last_frame) {
-    last_frame = esp_timer_get_time();
-  }
+  int64_t last_frame = esp_timer_get_time();
 
   res = httpd_resp_set_type(req, _STREAM_CONTENT_TYPE);
   if (res != ESP_OK) {
-    return res;
+    portENTER_CRITICAL(&rastroStatsLock);rastroStream.active=false;portEXIT_CRITICAL(&rastroStatsLock);
+  return res;
   }
 
   httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
@@ -235,8 +262,12 @@ static esp_err_t stream_handler(httpd_req_t *req) {
   enable_led(true);
 #endif
 
+  rastroStreamStart();
   while (true) {
+    const int64_t captureStart=esp_timer_get_time();
     fb = esp_camera_fb_get();
+    const uint32_t captureUs=uint32_t(esp_timer_get_time()-captureStart);
+    const int64_t sendStart=esp_timer_get_time();
     if (!fb) {
       log_e("Camera capture failed");
       res = ESP_FAIL;
@@ -257,15 +288,14 @@ static esp_err_t stream_handler(httpd_req_t *req) {
       }
     }
     if (res == ESP_OK) {
-      res = httpd_resp_send_chunk(req, _STREAM_BOUNDARY, strlen(_STREAM_BOUNDARY));
-    }
-    if (res == ESP_OK) {
-      size_t hlen = snprintf((char *)part_buf, 128, _STREAM_PART, _jpg_buf_len, _timestamp.tv_sec, _timestamp.tv_usec);
-      res = httpd_resp_send_chunk(req, (const char *)part_buf, hlen);
+      const int hlen=snprintf(part_buf,sizeof(part_buf),_STREAM_PART,(unsigned)_jpg_buf_len,(long long)_timestamp.tv_sec,(long)_timestamp.tv_usec);
+      if(hlen<0||size_t(hlen)>=sizeof(part_buf))res=ESP_FAIL;
+      else res=httpd_resp_send_chunk(req,part_buf,hlen);
     }
     if (res == ESP_OK) {
       res = httpd_resp_send_chunk(req, (const char *)_jpg_buf, _jpg_buf_len);
     }
+    if(res==ESP_OK)rastroStreamFrame(captureUs,uint32_t(esp_timer_get_time()-sendStart),_jpg_buf_len);
     if (fb) {
       esp_camera_fb_return(fb);
       fb = NULL;
@@ -298,6 +328,7 @@ static esp_err_t stream_handler(httpd_req_t *req) {
   enable_led(false);
 #endif
 
+  portENTER_CRITICAL(&rastroStatsLock);rastroStream.active=false;portEXIT_CRITICAL(&rastroStatsLock);
   return res;
 }
 
@@ -419,7 +450,7 @@ static int print_reg(char *p, char *end, sensor_t *s, uint16_t reg, uint32_t mas
 }
 
 static esp_err_t status_handler(httpd_req_t *req) {
-  static char json_response[1024];
+  static char json_response[2048];
 
   sensor_t *s = esp_camera_sensor_get();
   char *p = json_response;
@@ -487,6 +518,11 @@ static esp_err_t status_handler(httpd_req_t *req) {
 #else
   p += snprintf(p, end - p, ",\"led_intensity\":%d", -1);
 #endif
+  RastroStreamStats stats;portENTER_CRITICAL(&rastroStatsLock);stats=rastroStream;portEXIT_CRITICAL(&rastroStatsLock);
+  int noDelay=0;socklen_t optSize=sizeof(noDelay);
+  getsockopt(httpd_req_to_sockfd(req),IPPROTO_TCP,TCP_NODELAY,&noDelay,&optSize);
+  p+=snprintf(p,end-p,",\"rssi\":%d,\"wifiChannel\":%d,\"heap\":%u,\"uptime\":%u,\"tcpNoDelay\":%s",WiFi.RSSI(),WiFi.channel(),(unsigned)ESP.getFreeHeap(),(unsigned)millis(),noDelay?"true":"false");
+  p+=snprintf(p,end-p,",\"streamActive\":%s,\"streamFrames\":%u,\"streamMs\":%u,\"frameBytes\":%u,\"captureUs\":%u,\"sendUs\":%u",stats.active?"true":"false",(unsigned)stats.frames,(unsigned)(stats.frames?uint32_t(stats.lastMs-stats.startMs):0),(unsigned)stats.frameBytes,(unsigned)stats.captureUs,(unsigned)stats.sendUs);
   *p++ = '}';
   *p++ = 0;
   httpd_resp_set_type(req, "application/json");
@@ -675,6 +711,7 @@ static esp_err_t index_handler(httpd_req_t *req) {
 void startCameraServer() {
   httpd_config_t config = HTTPD_DEFAULT_CONFIG();
   config.max_uri_handlers = 16;
+  config.open_fn=rastroSocketOpen;
 
   httpd_uri_t index_uri = {
     .uri = "/",
